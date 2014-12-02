@@ -1,1 +1,1 @@
-This repo contains code examples for my personal blog [a link](http://czheng035.blogspot.ca/)
+This repo contains code examples for my personal blog [My R&D World](http://czheng035.blogspot.ca/)
