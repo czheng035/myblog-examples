@@ -8,10 +8,10 @@ import org.json.JSONObject;
 
 public class ActivityType {
 	private String activity;
-	String group;
-	boolean isGeo;
-	boolean isPlace;
-	String color;
+	private String group;
+	private boolean isGeo;
+	private boolean isPlace;
+	private String color;
 	private List<String> unitList;
 
 	public static ActivityType fromJson(JSONObject json) throws JSONException {
@@ -29,6 +29,22 @@ public class ActivityType {
 
 	public String getActivity() {
 		return activity;
+	}
+
+	public String getGroup() {
+		return group;
+	}
+
+	public boolean isGeo() {
+		return isGeo;
+	}
+
+	public boolean isPlace() {
+		return isPlace;
+	}
+
+	public String getColor() {
+		return color;
 	}
 
 	public List<String> getUnitList() {

@@ -9,7 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.gmail.czheng035.moves.api.ActivityTypeApi;
+import com.gmail.czheng035.moves.api.ActivityTypeRepo;
+import com.gmail.czheng035.moves.api.ApiManager;
 
 public class ActivitySummary {
 	private String activity;
@@ -28,15 +29,18 @@ public class ActivitySummary {
 		return activitySummariesList;
 	}
 
-	private static ActivitySummary fromJson4Android(JSONObject json)
+	public static ActivitySummary fromJson4Android(JSONObject json)
 			throws JSONException {
 		ActivitySummary activitySummary = new ActivitySummary();
 		activitySummary.activity = json.getString("activity");
 		activitySummary.group = json.getString("group");
 		activitySummary.duration = json.getInt("duration");
 
-		ActivityType activityType = ActivityTypeApi.getActivityTypeMap().get(
-				activitySummary.getActivity());
+		ApiManager am = ApiManager.getInstance();
+		ActivityTypeRepo activityTypeRepo = am.getActivityTypeRepo();
+		Map<String, ActivityType> activityTypeMap = activityTypeRepo.getActivityTypeMap();
+
+		ActivityType activityType = activityTypeMap.get(activitySummary.getActivity());
 		activitySummary.unitValueMap = new HashMap<String, Integer>();
 		for (String unit : activityType.getUnitList()) {
 			if (!unit.equals("calories"))
@@ -46,15 +50,18 @@ public class ActivitySummary {
 		return activitySummary;
 	}
 
-	private static ActivitySummary fromJson(JSONObject json)
+	public static ActivitySummary fromJson(JSONObject json)
 			throws JSONException {
 		ActivitySummary activitySummary = new ActivitySummary();
 		activitySummary.activity = json.getString("activity");
 		activitySummary.group = json.getString("group");
 		activitySummary.duration = json.getInt("duration");
+		
+		ApiManager am = ApiManager.getInstance();
+		ActivityTypeRepo activityTypeRepo = am.getActivityTypeRepo();
+		Map<String, ActivityType> activityTypeMap = activityTypeRepo.getActivityTypeMap();
 
-		ActivityType activityType = ActivityTypeApi.getActivityTypeMap().get(
-				activitySummary.getActivity());
+		ActivityType activityType = activityTypeMap.get(activitySummary.getActivity());
 		activitySummary.unitValueMap = new HashMap<String, Integer>();
 		for (String unit : activityType.getUnitList()) {
 			activitySummary.unitValueMap.put(unit, json.getInt(unit));
@@ -67,23 +74,15 @@ public class ActivitySummary {
 		return activity;
 	}
 
-	public void setActivity(String activity) {
-		this.activity = activity;
+	public String getGroup() {
+		return group;
 	}
 
 	public int getDuration() {
 		return duration;
 	}
 
-	public void setDuration(int duration) {
-		this.duration = duration;
-	}
-
 	public Map<String, Integer> getUnitValueMap() {
 		return unitValueMap;
-	}
-
-	public void setUnitValueMap(Map<String, Integer> unitValueMap) {
-		this.unitValueMap = unitValueMap;
 	}
 }

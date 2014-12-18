@@ -5,31 +5,54 @@ import java.io.IOException;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPostHC4;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtilsHC4;
 import org.json.JSONObject;
 
 import android.net.Uri;
 
-import com.gmail.czheng035.moves.api.exception.ApiContextNotInitialized;
-import com.gmail.czheng035.moves.api.net.HttpResourcesFactory;
+import com.gmail.czheng035.moves.api.exception.ApiManagerNotInitialized;
 
+/**
+ * ApiManager is the only singleton factory which holds single instances used
+ * for the whole library. The ApiManager singleton must be initialized by call
+ * init() before the first use.
+ * 
+ * @author Cheng Zheng
+ * 
+ */
 public class ApiManager {
-	private static String clientId = null;
-	private static String clientSecret = null;
-	private static String redirectUri = null;
-	
-	private static String accessToken = null;
-	private static String refreshToken = null;
-	
-	public static boolean initApiContext(String clientId, String clientSecret,
+
+	private String clientId;
+	private String clientSecret;
+	private String redirectUri;
+
+	private String refreshToken;
+	private String accessToken;
+
+	private ActivityTypeRepo activityTypeRepo;
+
+	private CloseableHttpClient httpClient;
+
+	private ApiManager() {
+		httpClient = HttpClients.createDefault();
+	}
+
+	private static class LazyHolder {
+		private static final ApiManager INSTANCE = new ApiManager();
+	}
+
+	public static ApiManager getInstance() {
+		return LazyHolder.INSTANCE;
+	}
+
+	public boolean init(String clientId, String clientSecret,
 			String redirectUri, String authCode) {
-		ApiManager.clientId = clientId;
-		ApiManager.clientSecret = clientSecret;
-		ApiManager.redirectUri = redirectUri;
+		this.clientId = clientId;
+		this.clientSecret = clientSecret;
+		this.redirectUri = redirectUri;
+		this.refreshToken = authCode;
 
 		Uri uri = new Uri.Builder().scheme("https")
 				.authority("api.moves-app.com").path("/oauth/v1/access_token")
@@ -39,16 +62,18 @@ public class ApiManager {
 				.appendQueryParameter("client_secret", clientSecret)
 				.appendQueryParameter("redirect_uri", redirectUri).build();
 
-		CloseableHttpClient httpClient = HttpResourcesFactory.getHttpClient();
 		HttpPostHC4 request = new HttpPostHC4(uri.toString());
 		CloseableHttpResponse response = null;
 		try {
 			response = httpClient.execute(request);
 			HttpEntity responseEntity = response.getEntity();
-			
-			JSONObject json = new JSONObject(EntityUtilsHC4.toString(responseEntity));
-			ApiManager.accessToken = json.getString("access_token");
-			ApiManager.refreshToken = json.getString("refresh_token");
+
+			JSONObject json = new JSONObject(
+					EntityUtilsHC4.toString(responseEntity));
+			accessToken = json.getString("access_token");
+			refreshToken = json.getString("refresh_token");
+
+			activityTypeRepo = new ActivityTypeRepo(accessToken, httpClient);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -63,9 +88,22 @@ public class ApiManager {
 			}
 		}
 	}
-	
-	public static String getAccessToken() {
-		if (accessToken == null) throw new ApiContextNotInitialized();
-		else return accessToken;
+
+	public String getAccessToken() {
+		if (accessToken == null)
+			throw new ApiManagerNotInitialized();
+		else
+			return accessToken;
+	}
+
+	public ActivityTypeRepo getActivityTypeRepo() {
+		if (activityTypeRepo == null)
+			throw new ApiManagerNotInitialized();
+		else
+			return activityTypeRepo;
+	}
+
+	public CloseableHttpClient getCloseableHttpClient() {
+		return httpClient;
 	}
 }
