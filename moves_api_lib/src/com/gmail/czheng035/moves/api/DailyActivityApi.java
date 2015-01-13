@@ -16,31 +16,21 @@ import org.json.JSONObject;
 
 import android.net.Uri;
 
-import com.gmail.czheng035.moves.api.entity.DailySummary;
+import com.gmail.czheng035.moves.api.entity.DailyActivities;
 
-public class DailySummaryApi extends BaseApi {
-
-	private static final String PATH = "/user/summary/daily/";
+public class DailyActivityApi extends BaseApi {
+	
+	private static final String PATH = "/user/activities/daily/";
 	
 	private String accessCode;
 	private CloseableHttpClient httpclient;
 	
-	public DailySummaryApi(String accessCode, CloseableHttpClient httpclient) {
+	public DailyActivityApi(String accessCode, CloseableHttpClient httpclient) {
 		this.accessCode = accessCode;
 		this.httpclient = httpclient;
 	}
 	
-	/**
-	 * 
-	 * @param date
-	 *            mandatory
-	 * @param updatedSince
-	 *            optional
-	 * @param timeZone
-	 *            optional
-	 * @return
-	 */
-	public DailySummary singleDay(Date date, Date updatedSince, String timeZone) {
+	public DailyActivities singleDay(Date date, Date updatedSince, String timeZone) {
 		DateFormat df = new SimpleDateFormat("yyyyMMdd", Locale.US);
 		Uri.Builder uriBuilder = new Uri.Builder().scheme(SCHEME)
 				.authority(AUTHORITY).path(BASE_PATH + PATH + df.format(date))
@@ -64,11 +54,11 @@ public class DailySummaryApi extends BaseApi {
 			String result = EntityUtilsHC4.toString(responseEntity);
 			
 			if (result.charAt(0) == '[') {
-				JSONArray dailySummaryJArray = new JSONArray(result);
-				return DailySummary.fromJson(dailySummaryJArray.getJSONObject(0));
+				JSONArray dailyActivitiesJArray = new JSONArray(result);
+				return DailyActivities.fromJson(dailyActivitiesJArray.getJSONObject(0));
 			} else {	// Error message is a JSON object
 				JSONObject error = new JSONObject(result);
-				return DailySummary.fromJson(error);
+				return DailyActivities.fromJson(error);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -1,6 +1,8 @@
 package com.gmail.czheng035.moves.api;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -24,12 +26,16 @@ import com.gmail.czheng035.moves.api.exception.ApiManagerNotInitialized;
  */
 public class ApiManager {
 
-	private String clientId;
-	private String clientSecret;
-	private String redirectUri;
 
-	private String refreshToken;
-	private String accessToken;
+	private String clientId = null;
+	private String clientSecret = null;
+	private String redirectUri = null;
+
+	private String refreshToken = null;
+	private String accessToken = null;
+	private Date expire = null;
+	
+	private Map<Integer, Class<?>> androidActivityMap = null;
 
 	private ActivityTypeRepo activityTypeRepo;
 
@@ -48,11 +54,13 @@ public class ApiManager {
 	}
 
 	public boolean init(String clientId, String clientSecret,
-			String redirectUri, String authCode) {
+			String redirectUri, String authCode, Map<Integer, Class<?>> androidActivityMap) {
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 		this.redirectUri = redirectUri;
 		this.refreshToken = authCode;
+		
+		this.androidActivityMap = androidActivityMap;
 
 		Uri uri = new Uri.Builder().scheme("https")
 				.authority("api.moves-app.com").path("/oauth/v1/access_token")
@@ -102,8 +110,20 @@ public class ApiManager {
 		else
 			return activityTypeRepo;
 	}
+	
+	public Map<Integer, Class<?>> getAndroidActivityMap() {
+		if (androidActivityMap == null)
+			throw new ApiManagerNotInitialized();
+		else
+			return androidActivityMap;
+	}
 
 	public CloseableHttpClient getCloseableHttpClient() {
 		return httpClient;
+	}
+	
+	public boolean hasValidAccessToken() {
+		if (accessToken != null) return true;
+		else return false;
 	}
 }
